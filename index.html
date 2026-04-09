@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Эхо Дримсайда</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="inventory" class="hidden">
+        <div class="inv-slot" id="inv-slot-1"></div>
+        <div class="inv-slot" id="inv-slot-2"></div>
+        <div class="inv-slot" id="inv-slot-3"></div>
+        <div class="inv-slot" id="inv-slot-4"></div>
+        <div class="inv-slot" id="inv-slot-5"></div>
+        <div class="inv-slot" id="inv-slot-6"></div>
+    </div>
+
+    <div id="main-menu" class="screen active">
+        <h1>Эхо Дримсайда</h1>
+        <button onclick="startGame()">Начать игру</button>
+    </div>
+
+    <div id="vn-screen" class="screen">
+        <div id="scene-view">
+            <div id="background"></div>
+            <div id="paw-prints"></div> 
+            <div id="sprites-container"></div>
+            
+            <!-- ВОТ ЭТОТ НОВЫЙ БЛОК ДЛЯ ФИНАЛЬНОГО ПАЗЛА -->
+            <div id="completed-puzzle" class="hidden"></div>
+            
+            <img id="wisp" src="assets/wisp.png" class="hidden" alt="Огонек"> 
+        </div>
+        
+        <div id="ui-layer">
+            <div id="dialogue-box" onclick="advanceStory()">
+                <div id="speaker-name"></div>
+                <div id="text-wrapper">
+                    <div id="dialogue-text"></div>
+                </div>
+                <div id="next-btn">►</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="minigame-screen" class="screen">
+        <div class="minigame-stub">
+            <h2>МИНИ-ИГРА (ЗАГЛУШКА)</h2>
+            <p>Имитация поиска предметов</p>
+            <div class="stub-buttons">
+                <button class="win-btn" onclick="winMinigame()">Выиграть (Нашла)</button>
+                <button class="lose-btn" onclick="loseMinigame()">Проиграть (Время вышло)</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="puzzle-overlay" class="screen hidden">
+        <div id="puzzle-piece-large"></div>
+        <p class="puzzle-text">Получен фрагмент воспоминания!</p>
+    </div>
+
+    <div id="full-puzzle-overlay" class="screen hidden">
+        <div id="swirl-container"></div>
+        <div id="flash-screen"></div>
+    </div>
+
+    <div id="jumpscare-screen" class="screen hidden">
+        <img src="assets/horror.jpg" alt="Скример" id="jumpscare-img">
+    </div>
+
+    <div id="ending-card-screen" class="screen hidden">
+        <div id="ending-card-bg"></div>
+        <div id="ending-card-content">
+            <h2 id="ending-title">Концовка</h2>
+            <div id="ending-card-img"></div>
+            <button class="menu-return-btn" onclick="returnToMenu()">Вернуться в меню</button>
+        </div>
+    </div>
+
+    <script src="story.js"></script>
+    <script src="engine.js"></script>
+</body>
+</html>
