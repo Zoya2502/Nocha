@@ -17,7 +17,6 @@ function startGame() {
     let inv = document.getElementById('inventory');
     if (inv) inv.classList.remove('hidden', 'fade-out');
     
-    // Прячем финальный пазл, если он остался от прошлой игры
     let completedPuzzle = document.getElementById('completed-puzzle');
     if(completedPuzzle) {
         completedPuzzle.classList.remove('active');
@@ -93,16 +92,13 @@ function renderLine() {
 
                 if (line.changeBg !== "") {
                     bg.style.backgroundImage = `url('${line.changeBg}')`;
-                    
-                    // Если мы меняем фон на АРТ концовки, ПРЯЧЕМ СОБРАННЫЙ ПАЗЛ
                     if (line.changeBg.includes('good_ending_art')) {
                         let completedPuzzle = document.getElementById('completed-puzzle');
                         if(completedPuzzle) {
                             completedPuzzle.classList.remove('active');
-                            setTimeout(() => completedPuzzle.classList.add('hidden'), 500); // Плавное исчезновение
+                            setTimeout(() => completedPuzzle.classList.add('hidden'), 500); 
                         }
                     }
-
                 } else { 
                     bg.style.backgroundImage = "none"; bg.style.backgroundColor = "#000000"; 
                 }
@@ -155,13 +151,12 @@ function renderLine() {
             else inv.classList.remove('fade-out');
         }
 
-        // === ИСПРАВЛЕНО: ЗАПУСК АНИМАЦИИ ПАЗЛА ===
         if (line.action === "play_puzzle_animation") {
             playFullPuzzleAnimation(() => {
                 currentLineIndex++;
                 renderLine();
             });
-            return; // Ждем окончания анимации
+            return; 
         }
         
         document.getElementById('text-wrapper').scrollTop = 0;
@@ -177,14 +172,7 @@ function updateSprites(spritesData) {
     let container = document.getElementById('sprites-container');
     if (!container) return;
 
-    let newNames = spritesData.map(s => s.name);
-    Array.from(container.children).forEach(child => {
-        if (!newNames.includes(child.dataset.name)) {
-            child.remove();
-            delete currentActiveSprites[child.dataset.name];
-        }
-    });
-
+    // ИСПРАВЛЕНИЕ: Больше не удаляем спрайты! Только обновляем или добавляем.
     spritesData.forEach(spriteInfo => {
         let existing = container.querySelector(`img[data-name="${spriteInfo.name}"]`);
         if (existing) {
@@ -301,7 +289,6 @@ function collectFragment(nextSceneId) {
     }, 1500); 
 }
 
-// === ИСПРАВЛЕННАЯ ЛОГИКА ФИНАЛЬНОГО ПАЗЛА ===
 function playFullPuzzleAnimation(callback) {
     let overlay = document.getElementById('full-puzzle-overlay');
     let swirlContainer = document.getElementById('swirl-container');
@@ -328,12 +315,17 @@ function playFullPuzzleAnimation(callback) {
     setTimeout(() => {
         flash.classList.add('flash-anim');
         setTimeout(() => {
-            
-            // ВАЖНО: Делаем видимым наш новый слой с пазлом!
+            let bg = document.getElementById('background');
+            if(bg) {
+                bg.style.backgroundImage = "url('assets/full_puzzle.png')";
+                bg.style.backgroundSize = "contain"; 
+                bg.style.backgroundRepeat = "no-repeat";
+                bg.style.filter = "drop-shadow(0 0 30px #00ffff)";
+            }
             let completedPuzzle = document.getElementById('completed-puzzle');
             if (completedPuzzle) {
                 completedPuzzle.classList.remove('hidden');
-                setTimeout(() => completedPuzzle.classList.add('active'), 50); // Плавно показываем
+                setTimeout(() => completedPuzzle.classList.add('active'), 50);
             }
 
             let spritesCont = document.getElementById('sprites-container');
@@ -344,8 +336,6 @@ function playFullPuzzleAnimation(callback) {
             overlay.classList.add('hidden');
             
             if (uiLayer) uiLayer.classList.remove('hidden');
-            
-            // Запускаем следующую реплику текста!
             if (callback) callback(); 
         }, 1000); 
     }, 2800); 
