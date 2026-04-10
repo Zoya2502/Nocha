@@ -5,15 +5,19 @@ let currentGameConfig = null;
 let currentActiveSprites = {}; 
 let unplayedFragments = []; 
 
-// === АУДИО МЕНЕДЖЕР ===
+// === АУДИО МЕНЕДЖЕР (OGG) ===
 let currentMusicType = null;
+let currentSfx = null; // Сюда будем сохранять звуки (скример, спираль), чтобы их выключать
+let fireSfx = new Audio("assets/sfx_fire.ogg");
+fireSfx.loop = true;
+
 const audioTracks = {
     "hub": new Audio("assets/bgm_hub.ogg"),
     "memory": new Audio("assets/bgm_memory.ogg"),
     "horror": new Audio("assets/bgm_horror.ogg"),
     "good_end": new Audio("assets/bgm_good_end.ogg")
 };
-// Зацикливаем музыку
+
 for (let key in audioTracks) { audioTracks[key].loop = true; }
 
 function playMusic(trackType) {
@@ -25,10 +29,29 @@ function playMusic(trackType) {
     }
     
     if (trackType && audioTracks[trackType]) {
-        audioTracks[trackType].play().catch(e => console.log("Аудио заблокировано браузером (нужен клик):", e));
+        audioTracks[trackType].play().catch(e => console.log("Блокировка автоплея", e));
         currentMusicType = trackType;
     } else {
         currentMusicType = null;
+    }
+}
+
+// Запуск одиночных звуков
+function playSfx(src) {
+    if (currentSfx) {
+        currentSfx.pause();
+        currentSfx.currentTime = 0;
+    }
+    currentSfx = new Audio(src);
+    currentSfx.play().catch(e => console.log("SFX блок", e));
+}
+
+// Принудительная остановка звука (скримера/спирали)
+function stopSfx() {
+    if (currentSfx) {
+        currentSfx.pause();
+        currentSfx.currentTime = 0;
+        currentSfx = null;
     }
 }
 // =========================
@@ -63,7 +86,11 @@ function startGame() {
 }
 
 function returnToMenu() {
+    // ВЫКЛЮЧАЕМ ВООБЩЕ ВСЁ ПРИ ВЫХОДЕ В МЕНЮ
     playMusic(null); 
+    stopSfx();
+    fireSfx.pause();
+    
     let inv = document.getElementById('inventory');
     if (inv) inv.classList.add('hidden');
     showScreen('main-menu');
@@ -74,10 +101,7 @@ function loadScene(sceneId) {
     currentLineIndex = 0;
     
     let scene = story[sceneId];
-    if (!scene) {
-        console.error("ОШИБКА: Сцена " + sceneId + " не найдена!");
-        return;
-    }
+    if (!scene) { console.error("ОШИБКА: Сцена " + sceneId + " не найдена!"); return; }
 
     if (scene.music) playMusic(scene.music);
 
@@ -90,8 +114,13 @@ function loadScene(sceneId) {
         if (scene.bg && scene.bg !== "") bg.style.backgroundImage = `url('${scene.bg}')`; 
         else { bg.style.backgroundImage = "none"; bg.style.backgroundColor = "#000000"; }
         
-        if (scene.effect === "burning") bg.classList.add('burning');
-        else bg.classList.remove('burning');
+        if (scene.effect === "burning") {
+            bg.classList.add('burning');
+            fireSfx.play().catch(e=>{});
+        } else { 
+            bg.classList.remove('burning');
+            fireSfx.pause();
+        }
     }
 
     let wisp = document.getElementById('wisp');
@@ -139,6 +168,7 @@ function renderLine() {
         if (line.removeEffect === "burning") {
             let bg = document.getElementById('background');
             if (bg) bg.classList.remove('burning');
+            fireSfx.pause(); 
         }
 
         let speakerDiv = document.getElementById('speaker-name');
@@ -160,10 +190,8 @@ function renderLine() {
             currentActiveSprites = {};
         }
 
-        // ОБНОВЛЕНИЕ СПРАЙТОВ
+        // === ИСПРАВЛЕННЫЕ СПРАЙТЫ ===
         if (line.show) updateSprites(line.show);
-        
-        // ВАЖНО: ИСПРАВЛЕНА ОШИБКА ЗДЕСЬ. ВЫЗЫВАЕМ ФУНКЦИЮ СКРЫТИЯ!
         if (line.hide) hideSprites(line.hide);
 
         highlightSpeaker(line.speaker);
@@ -177,6 +205,10 @@ function renderLine() {
                 let paws = document.getElementById('paw-prints');
                 if(paws) paws.classList.add('show');
             }
+        }
+        if (line.action === "hide_completed_puzzle") {
+            let cp = document.getElementById('completed-puzzle');
+            if (cp) { cp.classList.remove('active'); setTimeout(() => cp.classList.add('hidden'), 500); }
         }
 
         let inv = document.getElementById('inventory');
@@ -193,59 +225,73 @@ function renderLine() {
             return; 
         }
         
-        document.getElementById('text-wrapper').scrollTop = 0;
-        currentLineIndex++;
+        let nextBtn = document.getElementById('next-btn');
+        let choicesBox = document.getElementById('choices-container');
+        if (line.choices) {
+            if(nextBtn) nextBtn.classList.add('hidden');
+            if(choicesBox) {
+                choicesBox.classList.remove('hidden');
+                choicesBox.innerHTML = "";
+                line.choices.forEach(choice => {
+                    let btn = document.createElement('button');
+                    btn.className = "choice-btn";
+                    btn.innerHTML = choice.text;
+                    btn.onclick = (e) => { e.stopPropagation(); makeChoice(choice.nextAction); };
+                    choicesBox.appendChild(btn);
+                });
+                setTimeout(() => { document.getElementById('text-wrapper').scrollTop = document.getElementById('text-wrapper').scrollHeight; }, 50);
+            }
+        } else {
+            if(nextBtn) nextBtn.classList.remove('hidden');
+            if(choicesBox) choicesBox.classList.add('hidden');
+            document.getElementById('text-wrapper').scrollTop = 0;
+            currentLineIndex++;
+        }
     } else {
         handleNextAction(scene.nextAction, scene.gameConfig, scene.nextScene);
     }
 }
 
-function advanceStory() { renderLine(); }
+function advanceStory() { 
+    let scene = story[currentSceneId];
+    if(scene && scene.dialogue && scene.dialogue[currentLineIndex-1] && scene.dialogue[currentLineIndex-1].choices) {
+        return; 
+    }
+    renderLine(); 
+}
 
 function updateSprites(spritesData) {
     let container = document.getElementById('sprites-container');
     if (!container) return;
 
-    // Мы БОЛЬШЕ НЕ удаляем персонажей, которых нет в текущем списке show!
-    // Мы только добавляем новых или обновляем картинки/позиции у тех, кого передали.
+    // ВАЖНО: Мы больше НЕ удаляем персонажей, которых нет в текущем списке!
+    // Они остаются на месте, пока не вызовут hide или clearSprites.
 
     spritesData.forEach(spriteInfo => {
         let existing = container.querySelector(`img[data-name="${spriteInfo.name}"]`);
-        
         if (existing) {
-            // Персонаж уже есть на экране. Обновляем его класс (позицию/анимацию)
-            existing.className = `sprite pos-${spriteInfo.pos || 'center'} ${spriteInfo.anim || ''}`;
-            
-            // Если картинка (эмоция) изменилась, плавно меняем её
-            if (existing.src !== spriteInfo.img && !existing.src.includes(spriteInfo.img)) {
+            existing.className = `sprite pos-${spriteInfo.pos} ${spriteInfo.anim || ''}`;
+            if (!existing.src.includes(spriteInfo.img)) {
                 existing.src = spriteInfo.img; 
             }
         } else {
-            // Персонажа нет на экране. Создаем его!
             let img = document.createElement('img');
             img.src = spriteInfo.img; 
-            img.className = `sprite pos-${spriteInfo.pos || 'center'} ${spriteInfo.anim || ''}`;
+            img.className = `sprite pos-${spriteInfo.pos} ${spriteInfo.anim || ''}`;
             img.dataset.name = spriteInfo.name;
-            
-            // Защита: если картинки нет в папке, просто прячем рамку с ошибкой
             img.onerror = function() { this.style.display = 'none'; };
-            
             container.appendChild(img);
             currentActiveSprites[spriteInfo.name] = true;
         }
     });
 }
 
-// ВАЖНО: ВОТ ЭТА ФУНКЦИЯ ПРОПАЛА В ПРОШЛЫЙ РАЗ! Я ЕЕ ВЕРНУЛ.
 function hideSprites(namesArray) {
     let container = document.getElementById('sprites-container');
     if (!container) return;
     namesArray.forEach(name => {
         let s = container.querySelector(`img[data-name="${name}"]`);
-        if (s) { 
-            s.remove(); 
-            delete currentActiveSprites[name]; 
-        }
+        if (s) { s.remove(); delete currentActiveSprites[name]; }
     });
 }
 
@@ -278,11 +324,135 @@ function handleNextAction(action, config, nextSceneId) {
     else loadScene(action); 
 }
 
+// === ПОЛНОЦЕННАЯ МИНИ-ИГРА ===
+let minigameMistakes = 0;
+let itemsToFind = 5;
+let itemsFound = 0;
+let targetItemsList = [];
+
 function startMinigame(config) { 
     currentGameConfig = config; 
     let inv = document.getElementById('inventory');
     if (inv) inv.classList.add('fade-out'); 
+    
+    minigameMistakes = 0;
+    itemsFound = 0;
+    document.getElementById('mistakes-counter').innerText = `Ошибок: 0 / 3`;
+    
+    let bg = document.getElementById('minigame-bg');
+    let randBg = Math.floor(Math.random() * 3) + 1;
+    bg.style.backgroundImage = `url('assets/minigame_bg_${randBg}.jpg')`;
+
+    if (config.isGlitch) bg.classList.add('glitch-bg');
+    else bg.classList.remove('glitch-bg');
+
+    spawnItems();
     showScreen('minigame-screen'); 
+}
+
+function spawnItems() {
+    let container = document.getElementById('minigame-items-container');
+    let taskBox = document.getElementById('target-items-container');
+    container.innerHTML = "";
+    taskBox.innerHTML = "";
+
+    // 1. Выбираем 10 уникальных случайных ID предметов (от 1 до 10)
+    let allItems = [];
+    while(allItems.length < 10) {
+        let r = Math.floor(Math.random() * 10) + 1;
+        if(!allItems.includes(r)) allItems.push(r);
+    }
+    
+    // 2. Первые 5 предметов из списка объявляем ЦЕЛЕВЫМИ
+    targetItemsList = allItems.slice(0, 5);
+    
+    // 3. Рисуем силуэты целевых предметов в нижней панели
+    targetItemsList.forEach(id => {
+        let silhouette = document.createElement('div');
+        silhouette.className = `target-silhouette item-id-${id}`;
+        silhouette.style.backgroundImage = `url('assets/item_${id}.png')`;
+        taskBox.appendChild(silhouette);
+    });
+
+    // 4. УМНЫЙ СПАВН: раскидываем все 10 предметов по полю так, чтобы они не пересекались
+    let spawnedPositions = []; // Храним координаты уже поставленных предметов
+    const minDistance = 12; // Минимальная дистанция между центрами предметов (в процентах экрана)
+
+    allItems.forEach(id => {
+        let isTarget = targetItemsList.includes(id);
+        let item = document.createElement('div');
+        item.className = 'mg-item';
+        item.style.backgroundImage = `url('assets/item_${id}.png')`;
+        
+        let validPosition = false;
+        let randomTop, randomLeft;
+        let attempts = 0;
+
+        // Пытаемся найти свободное место (до 100 попыток на предмет)
+        while (!validPosition && attempts < 100) {
+            randomTop = Math.random() * 70 + 10;  // от 10% до 80%
+            randomLeft = Math.random() * 80 + 10; // от 10% до 90%
+            
+            validPosition = true;
+            // Проверяем расстояние до всех уже поставленных предметов
+            for (let i = 0; i < spawnedPositions.length; i++) {
+                let pos = spawnedPositions[i];
+                let dx = randomLeft - pos.x;
+                let dy = randomTop - pos.y;
+                let distance = Math.sqrt(dx*dx + dy*dy); // Теорема Пифагора
+                
+                if (distance < minDistance) {
+                    validPosition = false; // Слишком близко, ищем заново!
+                    break;
+                }
+            }
+            attempts++;
+        }
+
+        // Запоминаем найденную успешную позицию
+        spawnedPositions.push({ x: randomLeft, y: randomTop });
+
+        // Применяем позицию
+        item.style.top = randomTop + '%';
+        item.style.left = randomLeft + '%';
+        
+        // Рандомный размер (0.7 до 1.05) и поворот
+        item.style.transform = `rotate(${Math.random() * 360}deg) scale(${Math.random() * 0.35 + 0.7})`;
+
+        // Логика клика
+        item.onclick = (e) => {
+            e.stopPropagation(); 
+            if (isTarget) {
+                item.remove(); // Убираем предмет с поля
+                itemsFound++;
+                
+                // Подсвечиваем силуэт в панели заданий
+                let sil = document.querySelector(`.target-silhouette.item-id-${id}`);
+                if(sil) sil.classList.add('found');
+                
+                // Проверяем победу
+                if (itemsFound >= 5) winMinigame();
+            } else {
+                handleMissClick(); // Если кликнули по обманке
+            }
+        };
+        
+        container.appendChild(item);
+    });
+}
+
+function handleMissClick(e) {
+    minigameMistakes++;
+    document.getElementById('mistakes-counter').innerText = `Ошибок: ${minigameMistakes} / 3`;
+    
+    let bg = document.getElementById('minigame-bg');
+    bg.classList.remove('error-flash');
+    void bg.offsetWidth; 
+    bg.classList.add('error-flash');
+
+    if (minigameMistakes >= 3) {
+        loseMinigame();
+    }
 }
 
 function winMinigame() { 
@@ -295,7 +465,6 @@ function winMinigame() {
         loadScene(currentGameConfig.winScene); 
     }
 }
-
 function loseMinigame() { 
     showScreen('vn-screen'); 
     loadScene(currentGameConfig.loseScene); 
@@ -369,17 +538,13 @@ function playFullPuzzleAnimation(callback) {
     setTimeout(() => {
         flash.classList.add('flash-anim');
         setTimeout(() => {
-            let bg = document.getElementById('background');
-            if(bg) {
-                bg.style.backgroundImage = "url('assets/full_puzzle.png')";
-                bg.style.backgroundSize = "contain"; 
-                bg.style.backgroundRepeat = "no-repeat";
-                bg.style.filter = "drop-shadow(0 0 30px #00ffff)";
-            }
+            
+            // ВАЖНО: Мы больше не трогаем background!
+            // Мы включаем независимый слой completed-puzzle
             let completedPuzzle = document.getElementById('completed-puzzle');
             if (completedPuzzle) {
                 completedPuzzle.classList.remove('hidden');
-                setTimeout(() => completedPuzzle.classList.add('active'), 50);
+                setTimeout(() => completedPuzzle.classList.add('active'), 50); // Плавно показываем
             }
 
             let spritesCont = document.getElementById('sprites-container');
@@ -398,9 +563,8 @@ function playFullPuzzleAnimation(callback) {
 }
 
 function triggerJumpscareAndBadEnd() {
-    playMusic(null); 
-    let sfx = new Audio("assets/sfx_jumpscare.ogg");
-    sfx.play().catch(e=>{});
+    playMusic(null); // Пауза для тишины
+    playSfx("assets/sfx_jumpscare.ogg"); // Скример!
 
     let inv = document.getElementById('inventory');
     if (inv) inv.classList.add('hidden');
@@ -413,6 +577,10 @@ function triggerJumpscareAndBadEnd() {
     setTimeout(() => { 
         document.getElementById('vn-screen').classList.remove('fade-out');
         if(ui) ui.classList.remove('hidden');
+        
+        stopSfx(); // Жестко рубим звук скримера
+        playMusic("horror"); // Врубаем хоррор фон на концовку
+        
         showEndingCard("bad");
     }, 3000); 
 }

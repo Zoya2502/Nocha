@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- Инвентарь -->
     <div id="inventory" class="hidden">
         <div class="inv-slot" id="inv-slot-1"></div>
         <div class="inv-slot" id="inv-slot-2"></div>
@@ -16,20 +17,18 @@
         <div class="inv-slot" id="inv-slot-6"></div>
     </div>
 
+    <!-- Главное меню -->
     <div id="main-menu" class="screen active">
         <h1>Эхо Дримсайда</h1>
         <button onclick="startGame()">Начать игру</button>
     </div>
 
+    <!-- Экран визуальной новеллы -->
     <div id="vn-screen" class="screen">
         <div id="scene-view">
             <div id="background"></div>
             <div id="paw-prints"></div> 
             <div id="sprites-container"></div>
-            
-            <!-- ВОТ ЭТОТ НОВЫЙ БЛОК ДЛЯ ФИНАЛЬНОГО ПАЗЛА -->
-            <div id="completed-puzzle" class="hidden"></div>
-            
             <img id="wisp" src="assets/wisp.png" class="hidden" alt="Огонек"> 
         </div>
         
@@ -38,22 +37,36 @@
                 <div id="speaker-name"></div>
                 <div id="text-wrapper">
                     <div id="dialogue-text"></div>
+                    <div id="choices-container" class="hidden"></div>
+                </div>
+                <div id="next-btn">►</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ПОЛНОЦЕННАЯ МИНИ-ИГРА -->
+    <div id="minigame-screen" class="screen">
+        <div id="minigame-bg" onclick="handleMissClick(event)">
+            <!-- Сюда будут спавниться предметы -->
+            <div id="minigame-items-container"></div>
+        </div>
+        
+        <!-- Нижняя панель с Экранчиком и заданиями -->
+        <div id="minigame-ui">
+            <div id="minigame-screen-character"></div> <!-- Экранчик-наблюдатель -->
+            <div id="minigame-task-box">
+                <div class="task-header">
+                    <span>Найди эти фрагменты памяти:</span>
+                    <span id="mistakes-counter" class="mistakes">Ошибок: 0 / 3</span>
+                </div>
+                <div id="target-items-container">
+                    <!-- Сюда скрипт вставит 5 силуэтов -->
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="minigame-screen" class="screen">
-        <div class="minigame-stub">
-            <h2>МИНИ-ИГРА (ЗАГЛУШКА)</h2>
-            <p>Имитация поиска предметов</p>
-            <div class="stub-buttons">
-                <button class="win-btn" onclick="winMinigame()">Выиграть (Нашла)</button>
-                <button class="lose-btn" onclick="loseMinigame()">Проиграть (Время вышло)</button>
-            </div>
-        </div>
-    </div>
-
+    <!-- Анимации пазла -->
     <div id="puzzle-overlay" class="screen hidden">
         <div id="puzzle-piece-large"></div>
         <p class="puzzle-text">Получен фрагмент воспоминания!</p>
@@ -62,12 +75,15 @@
     <div id="full-puzzle-overlay" class="screen hidden">
         <div id="swirl-container"></div>
         <div id="flash-screen"></div>
+        <div id="completed-puzzle" class="hidden"></div>
     </div>
 
+    <!-- Скример -->
     <div id="jumpscare-screen" class="screen hidden">
         <img src="assets/horror.jpg" alt="Скример" id="jumpscare-img">
     </div>
 
+    <!-- Карточка концовки -->
     <div id="ending-card-screen" class="screen hidden">
         <div id="ending-card-bg"></div>
         <div id="ending-card-content">
