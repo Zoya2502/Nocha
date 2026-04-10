@@ -1,50 +1,37 @@
 const story = {
-    // ==========================================
-    // ВСТУПЛЕНИЕ
-    // ==========================================
     "intro": {
-        bg: "assets/eyes.png", effect: "burning",
+        bg: "assets/eyes.png", effect: "burning", music: "hub",
         dialogue: [
             { speaker: "", text: "<i>Что такое «дом»? Могу ли я… назвать это место своим домом?</i>" },
             { speaker: "", text: "Стоя на краю обрыва, Спасительница не может ответить на свой вопрос. Взгляд обращён вниз, на мириады снующих между деревьями котов. Так мало осталось привычных морд, так мало воспоминаний. Кажется, что дом наводнён чужаками, стремящимися его разорить. Разграбить. Не оставить даже крохотного камушка, осквернить родные места…" },
             { speaker: "", text: "Почему «кажется»? Так и есть. Нет больше Грозового племени. Слеза чистой скорби скатывается по щеке Спасительницы, прячась в густом меху, а в глазах стоит пугающий образ: Дом в огне. Тот самый Дом, прежняя Гроза, милая сердцу и родная. Друзья бегут прочь, объятые пламенем, а над всем этим безобразием возвышаются коты. Нет у них конкретной формы, но есть пылающие алчной ненавистью глаза и длинные клыки." },
             { speaker: "", text: "Огромными лапами они загребают брошенные пожитки, пируют на костях Грозы и смеются. Хохочут во все глотки, брызжа слюной." },
             { speaker: "", text: "А пламя поднимается всё выше. Ему нужно больше. Оно хочет поглотить всё, даже Ночу, стоящую в стороне. Языки пламени грозятся облизать пушистые лапки. Спасительнице кажется, что она уже чувствует жар жадного огня, как вдруг справа появляется нечто. Приходится на него отвлечься, однако Спасительница не понимает, что это или кто. А оно вдруг говорит:" },
-            
-            // Появляется Ноча и Экранчик (сальто)
-            { speaker: "Неизвестный голос", text: "Так-так-так… занимательно. Но что же покажешь нам ты?", changeBg: "", removeEffect: "burning", clearSprites: true, show: [{name: "Ноча", img: "assets/nocha_scared.png", pos: "left"}, {name: "Экранчик", img: "assets/screen.png", pos: "right", anim: "anim-flip-hover"}] },
-            
-            // Экранчик пугается огонька и летит в угол (observer)
+            { speaker: "Неизвестный голос", text: "Так-так-так… занимательно. Но что же покажешь нам ты?", changeBg: "", removeEffect: "burning", show: [{name: "Ноча", img: "assets/nocha_scared.png", pos: "left"}, {name: "Экранчик", img: "assets/screen.png", pos: "right", anim: "anim-flip-hover"}] },
             { speaker: "", text: "Неопознанный Экранчик словно хочет ещё что-то сказать, но в этот миг перед глазами Ночи появляется синий огонëк, его отпугнувший.", action: "show_wisp", show: [{name: "Экранчик", img: "assets/screen.png", pos: "observer"}] },
             { speaker: "", text: "От него веет родным теплом, какого Ноча не чувствовала уже так долго. Волей-неволей, а пойдëшь ты всë равно за этим ощущением, по которому так изголодался, и Ноча идëт.", show: [{name: "Ноча", img: "assets/nocha_norm.png", pos: "left"}] },
             { speaker: "", text: "Огонëк ведëт еë подальше от ужасного видения, вглубь леса, такими тропками, какими не ступала ни одна лапа.", action: "wisp_fly_away" },
             { speaker: "", text: "Боковым зрением Спасительница заметила что-то в густой траве. Она остановилась и обернулась." },
             { speaker: "Ноча", text: "Что это там такое?", action: "hide_wisp" }, 
             { speaker: "", text: "Перед глазами появляется таинственный экранчик и начинает вещать, но звук как будто раздаётся где-то в мозгу:" },
-            
-            // Экранчик вылетает в центр
             { speaker: "Экранчик", text: "Уф-ф, какой тут бардак, правда? Прямо как у тебя в голове! Может, приберëшься тут? Обещаю, тебе понравится то, что ты увидишь.", show: [{name: "Ноча", img: "assets/nocha_scared.png", pos: "left"}, {name: "Экранчик", img: "assets/screen.png", pos: "center", anim: "anim-fly-to-center"}] }, 
-            
-            // Экранчик возвращается в угол
             { speaker: "", text: "Не то чтобы у Спасительницы есть какой-то выбор... С лëгкой тревогой, покалывающей лапы, она начинает поиски. Едва она касается первого предмета, голосок вновь говорит:", show: [{name: "Экранчик", img: "assets/screen.png", pos: "observer"}] },
             { speaker: "Экранчик", text: "Конечно, если будешь осторожна, дорогая.", show: [{name: "Ноча", img: "assets/nocha_determined.png", pos: "left"}] }
         ],
-        nextAction: "minigame", gameConfig: { time: 10, items: 3, winScene: "random_next", loseScene: "shadow_horror_1" }
+        nextAction: "minigame", gameConfig: { time: 10, items: 3, winScene: "shadow_1", loseScene: "shadow_horror_1" }
     },
-    
+
     "intro_retry": {
-        bg: "",
-        dialogue: [
-            { speaker: "Экранчик", text: "— Выбралась! Отлично! А теперь пробуй ещё раз. И помни, что нужно быть осторожной.", clearSprites: true, show: [{name: "Ноча", img: "assets/nocha_determined.png", pos: "left"}, {name: "Экранчик", img: "assets/screen.png", pos: "observer"}] }
-        ],
-        nextAction: "minigame", gameConfig: { time: 10, items: 3, winScene: "random_next", loseScene: "shadow_horror_1" }
+        bg: "", music: "hub",
+        dialogue: [{ speaker: "Экранчик", text: "— Выбралась! Отлично! А теперь пробуй ещё раз. И помни, что нужно быть осторожной.", show: [{name: "Ноча", img: "assets/nocha_determined.png", pos: "left"}, {name: "Экранчик", img: "assets/screen.png", pos: "observer"}] }],
+        nextAction: "minigame", gameConfig: { time: 10, items: 3, winScene: "shadow_1", loseScene: "shadow_horror_1" }
     },
 
     // ==========================================
     // ТЕНЬ ВОРОНА 1
     // ==========================================
     "shadow_1": {
-        bg: "assets/memory_bg.jpg", 
+        bg: "assets/memory_bg.jpg", music: "memory",
         dialogue: [
             { speaker: "Спасительница", text: "<i>Меня ослепляет вспышка света. Такая яркая и белая, что едва получается вовремя зажмуриться. Открыв глаза, я вижу знакомую поляну. Полянку для игр, если быть совсем уж точной.</i>", action: "hide_wisp", clearSprites: true, show: [{name: "Ноча", img: "assets/nocha_norm.png", pos: "left"}, {name: "Тень Ворона", img: "assets/shadow_blur.png", pos: "right"}, {name: "Экранчик", img: "assets/screen.png", pos: "observer"}] },
             { speaker: "Спасительница", text: "<i>Здесь я играла с котятами. Сейчас, сквозь пережитое, это время кажется таким далëким, хотя не то чтобы прошло много лун. Но воспоминания… они всë ещë свежи. Окрашены озорными огоньками и радостью подрастающих воителей.</i>" },
@@ -66,7 +53,7 @@ const story = {
         nextAction: "collect_fragment", nextScene: "shadow_1_post" 
     },
     "shadow_1_post": {
-        bg: "",
+        bg: "", music: "hub",
         dialogue: [
             { speaker: "", text: "<b>Конец фрагмента</b><br><br>Спасительница открывает глаза, вновь оказавшись в лесу. В лапах теплится фрагмент воспоминания, больше похожий на элемент какой-то загадки. Он кажется таким хрупким, что хочется прижать его к себе поближе. Прямо к сердцу.", action: "show_wisp", clearSprites: true, show: [{name: "Ноча", img: "assets/nocha_norm.png", pos: "left"}, {name: "Экранчик", img: "assets/screen.png", pos: "observer"}] },
             { speaker: "", text: "Рядом пролетает голубой огонёк. Замирает у фрагмента и будто подпрыгивает в воздухе." },
@@ -80,7 +67,7 @@ const story = {
     },
 
     "shadow_horror_1": {
-        bg: "",
+        bg: "", music: "horror",
         dialogue: [
             { speaker: "Экранчик", text: "— Так-так-так, — перед Ночей вновь возникает Экранчик. — Трудно, да? Увы, но ты не справилась. Посмотрим, как ты сможешь выбраться отсюда.", action: "hide_wisp", clearSprites: true, show: [{name: "Ноча", img: "assets/nocha_scared.png", pos: "left"}, {name: "Экранчик", img: "assets/screen.png", pos: "observer"}] },
             { speaker: "", text: "Едва он заканчивает говорить, как у Спасительницы земля уходит из-под ног. Мир вокруг застилает тьма, холодная и колючая, а взор начинает проясняться далеко не сразу." },
@@ -99,20 +86,22 @@ const story = {
         nextAction: "minigame", gameConfig: { time: 8, items: 5, isGlitch: true, winScene: "shadow_horror_win_1", loseScene: "bad_ending" }
     },
     "shadow_horror_win_1": {
+        bg: "", music: "hub",
         dialogue: [
             { speaker: "Спасительница", text: "Нашла! Я всё нашла!", clearSprites: true, show: [{name: "Ноча", img: "assets/nocha_determined.png", pos: "left"}, {name: "Экранчик", img: "assets/screen.png", pos: "observer"}] },
             { speaker: "Спасительница", text: "<i>Сразу куда-то пропадают злые глаза, что не давали мне вдохнуть полной грудью. Тьма начинает рассеиваться, вновь яркая вспышка. Мои лапы отрываются от земли. Уже привычная яркая вспышка слепит глаза, и мир словно очищается.</i>" },
             { speaker: "", text: "Вновь Спасительница оказалась на знакомой лесной поляне. Она оглядывается по сторонам, настороженно навострив ушки, и тут снова появляется перед глазами Экранчик.", action: "show_wisp" },
             { speaker: "Экранчик", text: "— Выбралась! Отлично! А теперь пробуй ещё раз. И помни, что нужно быть осторожной." }
         ],
-        nextAction: "minigame", gameConfig: { time: 10, items: 3, winScene: "shadow_1", loseScene: "shadow_horror_1" }
+        nextAction: "intro_retry" 
     },
+
 
     // ==========================================
     // ТЕНЬ ВОРОНА 2
     // ==========================================
     "shadow_2": {
-        bg: "assets/memory_bg.jpg",
+        bg: "assets/memory_bg.jpg", music: "memory",
         dialogue: [
             { speaker: "Спасительница", text: "<i>И вновь меня ослепляет яркий свет. Проморгавшись, я понимаю, что сейчас ночь. Глубокая, тёмная, не видно ни зги. Пока я не вскидываю голову к небу.</i>", action: "hide_wisp", clearSprites: true, show: [{name: "Ноча", img: "assets/nocha_norm.png", pos: "left"}, {name: "Тень Ворона", img: "assets/shadow_blur.png", pos: "right"}, {name: "Экранчик", img: "assets/screen.png", pos: "observer"}] },
             { speaker: "Спасительница", text: "<i>Небо цветёт россыпью звёзд. Крупные, мелкие, далёкие и близкие — все они здесь. Никогда я ещё не видела такое их множество. На секунду посещает мысль, что это Звёздное племя готово принять меня в свои ряды.</i>" },
@@ -131,7 +120,7 @@ const story = {
         nextAction: "collect_fragment", nextScene: "shadow_2_post" 
     },
     "shadow_2_post": {
-        bg: "",
+        bg: "", music: "hub",
         dialogue: [
             { speaker: "", text: "<b>Конец фрагмента</b><br><br>Перемещения между воспоминаниями и явью отзываются в голове тупой болью. Интересно, сколько ещё она так будет скакать туда-сюда? Не растеряет ли по пути все мозги?", action: "show_wisp", clearSprites: true, show: [{name: "Ноча", img: "assets/nocha_sad.png", pos: "left"}, {name: "Экранчик", img: "assets/screen.png", pos: "observer"}] },
             { speaker: "", text: "Когда неприятные ощущения проходят, вновь накатывает тоска по дорогой подруге. Теперь Спасительница одна смотрит на далёкие звёзды, практически каждую ночь пытается высмотреть Тень Ворона на ночном небе." },
@@ -142,7 +131,7 @@ const story = {
         nextAction: "minigame", gameConfig: { time: 10, items: 3, winScene: "random_next", loseScene: "shadow_horror_2" }
     },
     "shadow_horror_2": {
-        bg: "",
+        bg: "", music: "horror",
         dialogue: [
             { speaker: "Экранчик", text: "Опять неудача? Осторожнее...", action: "hide_wisp", clearSprites: true, show: [{name: "Ноча", img: "assets/nocha_scared.png", pos: "left"}, {name: "Экранчик", img: "assets/screen.png", pos: "observer"}] },
             { speaker: "Тень Ворона", text: "ДАВАЙ. ИЩИ. Если не справишься - утонем!", isHorror: true, show: [{name: "Тень Ворона", img: "assets/shadow_horror.png", pos: "right"}] },
@@ -151,6 +140,7 @@ const story = {
         nextAction: "minigame", gameConfig: { time: 8, items: 5, isGlitch: true, winScene: "shadow_horror_win_2", loseScene: "bad_ending" }
     },
     "shadow_horror_win_2": {
+        bg: "", music: "hub",
         dialogue: [
             { speaker: "Спасительница", text: "Нашла! Я всё нашла!", clearSprites: true, show: [{name: "Ноча", img: "assets/nocha_determined.png", pos: "left"}, {name: "Экранчик", img: "assets/screen.png", pos: "observer"}] },
             { speaker: "Спасительница", text: "<i>Тьма рассеивается... Вновь Спасительница оказалась на знакомой лесной поляне.</i>" },
@@ -163,7 +153,7 @@ const story = {
     // СОЛНЕЧНОПЛЯСКА 1
     // ==========================================
     "sun_1": {
-        bg: "assets/memory_bg.jpg",
+        bg: "assets/memory_bg.jpg", music: "memory",
         dialogue: [
             { speaker: "Спасительница", text: "<i>Знакомая яркая вспышка снова меня ослепляет. Это начинает входить в привычку. Вновь нужно немного проморгаться, чтобы зрение прояснилось.</i>", action: "hide_wisp", clearSprites: true, show: [{name: "Ноча", img: "assets/nocha_norm.png", pos: "left"}, {name: "Солнечнопляска", img: "assets/sun_blur.png", pos: "right"}, {name: "Экранчик", img: "assets/screen.png", pos: "observer"}] },
             { speaker: "Спасительница", text: "<i>Наконец становится понятно, что я в Северном клане. Снежный Перевал уже давно стал знакомым и привычным, но вот стал ли родным? Я не могу дать однозначный ответ... По крайней мере сейчас.</i>", show: [{name: "Ноча", img: "assets/nocha_sad.png", pos: "left"}] },
@@ -183,7 +173,7 @@ const story = {
         nextAction: "collect_fragment", nextScene: "sun_1_post" 
     },
     "sun_1_post": {
-        bg: "",
+        bg: "", music: "hub",
         dialogue: [
             { speaker: "", text: "<b>Конец фрагмента</b><br><br>И вновь реальный мир. Переход уже не отзывается так неприятно, возможно, Ноча привыкает к путешествию сквозь воспоминания.", action: "show_wisp", clearSprites: true, show: [{name: "Ноча", img: "assets/nocha_norm.png", pos: "left"}, {name: "Экранчик", img: "assets/screen.png", pos: "observer"}] },
             { speaker: "", text: "Солнечнопляска. Главный проводник в Северный клан для Спасительницы. Даже от звука её имени становится легче, кажется, что любые невзгоды нипочём. Впрочем, так оно и есть. Ноча в этом не сомневалась." },
@@ -194,7 +184,7 @@ const story = {
         nextAction: "minigame", gameConfig: { time: 10, items: 3, winScene: "random_next", loseScene: "sun_horror_1" }
     },
     "sun_horror_1": {
-        bg: "",
+        bg: "", music: "horror",
         dialogue: [
             { speaker: "", text: "<i>Как бы Спасительница ни старалась, не может она навести порядок в этот раз. Не получается. Не складываются обрывки в единую картину. Лапы дрожат, начинает накрывать паника... и тут появляется Экранчик. От того, как резко он возник прямо в воздухе, Ноча вздрагивает, отпрыгнув.</i>", action: "hide_wisp", clearSprites: true, show: [{name: "Ноча", img: "assets/nocha_scared.png", pos: "left"}, {name: "Экранчик", img: "assets/screen.png", pos: "observer"}] },
             { speaker: "Экранчик", text: "— Не получается? Жаль. Тогда придётся пройти испытание потруднее." },
@@ -213,6 +203,7 @@ const story = {
         nextAction: "minigame", gameConfig: { time: 8, items: 5, isGlitch: true, winScene: "sun_horror_win_1", loseScene: "bad_ending" }
     },
     "sun_horror_win_1": {
+        bg: "", music: "hub",
         dialogue: [
             { speaker: "Спасительница", text: "Последний фрагмент у меня. Получилось.", clearSprites: true, show: [{name: "Ноча", img: "assets/nocha_determined.png", pos: "left"}, {name: "Солнечнопляска", img: "assets/sun_horror.png", pos: "right"}, {name: "Экранчик", img: "assets/screen.png", pos: "observer"}] },
             { speaker: "Спасительница", text: "<i>Подняв голову, я вижу, как отступает Солнечнопляска. Она больше не злорадствует, но и прежней не стала. Всё также угрожает своим видом. Ноче кажется, будто она уже видит, как клыки «подруги» смыкаются на её глотке…</i>", show: [{name: "Ноча", img: "assets/nocha_scared.png", pos: "left"}] },
@@ -227,7 +218,7 @@ const story = {
     // СОЛНЕЧНОПЛЯСКА 2
     // ==========================================
     "sun_2": {
-        bg: "assets/memory_bg.jpg",
+        bg: "assets/memory_bg.jpg", music: "memory",
         dialogue: [
             { speaker: "Спасительница", text: "<i>Привычная яркая вспышка света бьёт по глазам. Я успеваю зажмуриться, всё-таки уже есть опыт, хотя всё равно немного дискомфортно. Но теперь ко временной слепоте добавилось новое ощущение.</i>", action: "hide_wisp", clearSprites: true, show: [{name: "Ноча", img: "assets/nocha_scared.png", pos: "left"}, {name: "Солнечнопляска", img: "assets/sun_blur.png", pos: "right"}, {name: "Экранчик", img: "assets/screen.png", pos: "observer"}] },
             { speaker: "Спасительница", text: "<i>Лапы стали словно деревянные, и ужасно клонит к земле. Кажется, я вот-вот упаду! Когда моя морда практически встречается с заснеженной землёй, я чувствую тёплое прикосновение к своему боку.</i>", show: [{name: "Ноча", img: "assets/nocha_sad.png", pos: "left"}] },
@@ -240,15 +231,15 @@ const story = {
         nextAction: "collect_fragment", nextScene: "sun_2_post"
     },
     "sun_2_post": {
-        bg: "",
+        bg: "", music: "hub",
         dialogue: [
-            { speaker: "", text: "<b>Конец фрагмента</b><br><br>Как тяжёло глаза закрывались в воспоминании, так тяжело они и открываются в реальности. Ноча немного завидует себе из этого воспоминания. Та подстилка ощущалась мягче облаков и теплее объятий.", action: "show_wisp", clearSprites: true, show: [{name: "Ноча", img: "assets/nocha_norm.png", pos: "left"}, {name: "Экранчик", img: "assets/screen.png", pos: "observer"}] },
+            { speaker: "", text: "<b>Конец фрагмента 2</b><br><br>Как тяжёло глаза закрывались в воспоминании, так тяжело они и открываются в реальности. Ноча немного завидует себе из этого воспоминания. Та подстилка ощущалась мягче облаков и теплее объятий.", action: "show_wisp", clearSprites: true, show: [{name: "Ноча", img: "assets/nocha_norm.png", pos: "left"}, {name: "Экранчик", img: "assets/screen.png", pos: "observer"}] },
             { speaker: "", text: "Но отдыхать нельзя. Огонёк не прекращает хаотично летать вокруг, а значит, дело ещё не закончено. Как раз рядом что-то поблёскивает в траве…" }
         ],
         nextAction: "minigame", gameConfig: { time: 10, items: 3, winScene: "random_next", loseScene: "sun_horror_2" }
     },
     "sun_horror_2": {
-        bg: "",
+        bg: "", music: "horror",
         dialogue: [
             { speaker: "Экранчик", text: "Опять неудача? Осторожнее...", action: "hide_wisp", clearSprites: true, show: [{name: "Ноча", img: "assets/nocha_scared.png", pos: "left"}, {name: "Экранчик", img: "assets/screen.png", pos: "observer"}] },
             { speaker: "Солнечнопляска", text: "Брось это всё и работай!", isHorror: true, show: [{name: "Солнечнопляска", img: "assets/sun_horror.png", pos: "right"}] }
@@ -256,6 +247,7 @@ const story = {
         nextAction: "minigame", gameConfig: { time: 8, items: 5, isGlitch: true, winScene: "sun_horror_win_2", loseScene: "bad_ending" }
     },
     "sun_horror_win_2": {
+        bg: "", music: "hub",
         dialogue: [
             { speaker: "Спасительница", text: "Нашла!", clearSprites: true, show: [{name: "Ноча", img: "assets/nocha_determined.png", pos: "left"}, {name: "Экранчик", img: "assets/screen.png", pos: "observer"}] },
             { speaker: "Спасительница", text: "<i>Тьма рассеивается... Вновь Спасительница оказалась на знакомой лесной поляне.</i>" },
@@ -269,7 +261,7 @@ const story = {
     // ПАДУБ 1
     // ==========================================
     "holly_1": {
-        bg: "assets/memory_bg.jpg",
+        bg: "assets/memory_bg.jpg", music: "memory",
         dialogue: [
             { speaker: "Спасительница", text: "<i>В этот раз яркой вспышки не было. На мгновение у меня помутнело в глазах, но всё быстро прояснилось. Я увидела внелагерную территорию Северного клана.</i>", action: "hide_wisp", clearSprites: true, show: [{name: "Ноча", img: "assets/nocha_norm.png", pos: "left"}, {name: "Падуб", img: "assets/holly_blur.png", pos: "right"}, {name: "Экранчик", img: "assets/screen.png", pos: "observer"}] },
             { speaker: "Спасительница", text: "<i>Горную тропку освещала полная луна. И в целом ночь была необычнайно светлая.</i>" },
@@ -287,16 +279,16 @@ const story = {
         nextAction: "collect_fragment", nextScene: "holly_1_post"
     },
     "holly_1_post": {
-        bg: "",
+        bg: "", music: "hub",
         dialogue: [
-            { speaker: "", text: "<b>Конец фрагмента</b><br><br>Возвращаться из ночи в ночь, как оказалось, комфортнее для восприятия. Глаза почему-то успевали привыкнуть к дню, а в этот раз всё хорошо. Или Ноча пытается искать любое хорошее, что есть в её авантюре.", action: "show_wisp", clearSprites: true, show: [{name: "Ноча", img: "assets/nocha_norm.png", pos: "left"}, {name: "Экранчик", img: "assets/screen.png", pos: "observer"}] },
+            { speaker: "", text: "<b>Конец фрагмента 1</b><br><br>Возвращаться из ночи в ночь, как оказалось, комфортнее для восприятия. Глаза почему-то успевали привыкнуть к дню, а в этот раз всё хорошо. Или Ноча пытается искать любое хорошее, что есть в её авантюре.", action: "show_wisp", clearSprites: true, show: [{name: "Ноча", img: "assets/nocha_norm.png", pos: "left"}, {name: "Экранчик", img: "assets/screen.png", pos: "observer"}] },
             { speaker: "", text: "Падуб. Смелый, сильный воин и хороший друг. Спасительница очень за него держится. И надеется, что это взаимно." },
             { speaker: "", text: "Огонёк продолжает довольно отплясывать, всё никак не замрёт. Хотя спустя столько воспоминаний аналогия становится понятна: осталось последнее воспоминание. Ноча чувствует, что готова, и идёт на поиски.", show: [{name: "Ноча", img: "assets/nocha_determined.png", pos: "left"}] }
         ],
         nextAction: "minigame", gameConfig: { time: 10, items: 3, winScene: "random_next", loseScene: "holly_horror_1" }
     },
     "holly_horror_1": {
-        bg: "",
+        bg: "", music: "horror",
         dialogue: [
             { speaker: "Спасительница", text: "<i>Ещё немного, ещё совсем чуть-чуть! Но времени нет. Не тот порядок, не получается. Всё из лап валится... Спасительница пытается собрать воедино найденное, загребает лапами предметы, но появляется Экранчик.</i>", action: "hide_wisp", clearSprites: true, show: [{name: "Ноча", img: "assets/nocha_scared.png", pos: "left"}, {name: "Экранчик", img: "assets/screen.png", pos: "observer"}] },
             { speaker: "Экранчик", text: "— Поздно, дорогая. Придётся столкнуться со своим страхом. Прости…" },
@@ -312,6 +304,7 @@ const story = {
         nextAction: "minigame", gameConfig: { time: 8, items: 5, isGlitch: true, winScene: "holly_horror_win_1", loseScene: "bad_ending" }
     },
     "holly_horror_win_1": {
+        bg: "", music: "hub",
         dialogue: [
             { speaker: "Спасительница", text: "<i>Получилось. Великое Звёздное племя, получилось. Спасительница собирает все вещи и оборачивается на «Падуба». Тот больше не улыбается. Сидит прямо на корнях странного дерева, наклонив голову набок, и дрожит. Молча смеряет Ночу взглядом, полным сожаления. Но сожаления не такого, какое бывает, если тоскуешь или виноват. Сожаления по тому, что не получилось причинить зло. Решив не медлить ни секунды, Спасительница покидает кошмарное, искажённое воспоминание.</i>", clearSprites: true, show: [{name: "Ноча", img: "assets/nocha_determined.png", pos: "left"}, {name: "Падуб", img: "assets/holly_horror.png", pos: "right"}, {name: "Экранчик", img: "assets/screen.png", pos: "observer"}] },
             { speaker: "Экранчик", text: "— Браво! — встречает её задорный голос Экранчика. — Может, на бис? Шучу-шучу. Ты справилась. Дарую тебе шанс на вторую попытку. По-моему, очень великодушно.", action: "show_wisp", hide: ["Падуб"], show: [{name: "Ноча", img: "assets/nocha_scared.png", pos: "left"}] },
@@ -324,7 +317,7 @@ const story = {
     // ПАДУБ 2
     // ==========================================
     "holly_2": {
-        bg: "assets/memory_bg.jpg",
+        bg: "assets/memory_bg.jpg", music: "memory",
         dialogue: [
             { speaker: "Спасительница", text: "<i>Вспышка. Ярче всех предыдущих. Приходится прикрыть морду лапами, чтобы не жгло. А затем слышится гул. Гул сотен голосов, наперебой что-то обсуждающих. Трудно разобрать в их гомоне, о чём конкретно весь этот шум.</i>", action: "hide_wisp", clearSprites: true, show: [{name: "Ноча", img: "assets/nocha_scared.png", pos: "left"}, {name: "Падуб", img: "assets/holly_blur.png", pos: "right"}, {name: "Экранчик", img: "assets/screen.png", pos: "observer"}] },
             { speaker: "Падуб", text: "Спасительница? Эй, ты в порядке? Давай! Нам ещё две игры осталось. Ты со мной?" },
@@ -339,7 +332,7 @@ const story = {
         nextAction: "collect_fragment", nextScene: "holly_2_post" 
     },
     "holly_2_post": {
-        bg: "",
+        bg: "", music: "hub",
         dialogue: [
             { speaker: "", text: "<b>Конец фрагмента 2</b><br><br>Спасительница просыпается с лёгкой тоской на сердце. Она хорошо помнит то событие в Речном племени, хорошо помнит, как было здорово. И как они с Падубом сплотились в тот день. Казалось, что не было союза крепче и правильнее. И доказательством тому была победа. Почему-то Ноча редко возвращалась воспоминаниями именно в это событие, но сейчас, спустя столько времени, было приятно вновь ощутить это тепло.", action: "show_wisp", clearSprites: true, show: [{name: "Ноча", img: "assets/nocha_norm.png", pos: "left"}, {name: "Экранчик", img: "assets/screen.png", pos: "observer"}] },
             { speaker: "", text: "Огонёк не мог успокоиться. Летал уже вокруг собранных фрагментов. Кажется, это всё?.." }
@@ -347,7 +340,7 @@ const story = {
         nextAction: "minigame", gameConfig: { time: 10, items: 3, winScene: "random_next", loseScene: "holly_horror_2" }
     },
     "holly_horror_2": {
-        bg: "",
+        bg: "", music: "horror",
         dialogue: [
             { speaker: "Экранчик", text: "Поздно, дорогая. Придётся столкнуться со своим страхом...", action: "hide_wisp", clearSprites: true, show: [{name: "Ноча", img: "assets/nocha_scared.png", pos: "left"}, {name: "Экранчик", img: "assets/screen.png", pos: "observer"}] },
             { speaker: "Падуб", text: "Я<br><br>Могу<br><br>Делать<br><br>Что угодно.<br><br>ПреЕдстТТавлЯЯеШь?7", isHorror: true, show: [{name: "Падуб", img: "assets/holly_horror.png", pos: "right"}] }
@@ -355,6 +348,7 @@ const story = {
         nextAction: "minigame", gameConfig: { time: 8, items: 5, isGlitch: true, winScene: "holly_horror_win_2", loseScene: "bad_ending" }
     },
     "holly_horror_win_2": {
+        bg: "", music: "hub",
         dialogue: [
             { speaker: "Спасительница", text: "Получилось...", clearSprites: true, show: [{name: "Ноча", img: "assets/nocha_determined.png", pos: "left"}, {name: "Экранчик", img: "assets/screen.png", pos: "observer"}] },
             { speaker: "Спасительница", text: "<i>Ноча закатывает глаза, но деваться некуда. Приходится вернуться к загадке. Жаль, что настоящего Падуба рядом нет. Тут он бы точно пригодился. Вновь Спасительница оказалась на знакомой лесной поляне.</i>", action: "show_wisp", show: [{name: "Ноча", img: "assets/nocha_norm.png", pos: "left"}] }
@@ -366,7 +360,7 @@ const story = {
     // КОНЦОВКИ
     // ==========================================
     "good_ending_intro": {
-        bg: "",
+        bg: "", music: "hub",
         dialogue: [
             { speaker: "", text: "<b>ХОРОШАЯ КОНЦОВКА</b><br><br>Точно. Всё. Все фрагменты собраны. Спасительница вертит их в лапах, не зная точно, что делать.", action: "hide_wisp", clearSprites: true, show: [{name: "Ноча", img: "assets/nocha_sad.png", pos: "center-large"}] },
             { speaker: "Спасительница", text: "— Вот так..? Нет, не то… А может…" },
@@ -380,11 +374,11 @@ const story = {
     },
 
     "good_ending": {
-        bg: "",
+        bg: "", // Музыка переключается в engine.js на good_end после пазла
         dialogue: [
-            { speaker: "", text: "Ноча ощущает то тепло, за которым гналась, когда ей показался этот огонёк. Сразу в мыслях всплывают образы дорогих сердцу друзей, самых близких и хороших.", clearSprites: true },
+            { speaker: "", text: "Ноча ощущает то тепло, за которым гналась, когда ей показался этот огонёк. Сразу в мыслях всплывают образы дорогих сердцу друзей, самых близких и хороших.", clearSprites: true, show: [{name: "Ноча", img: "assets/nocha_norm.png", pos: "left"}] },
             { speaker: "", text: "Так хочется увидеть их прямо сейчас. Конечно, вряд ли это возможно, но помечтать же никто не мешает?" },
-            { speaker: "Солнечнопляска", text: "— Ноча! Ноча, привет!", changeBg: "assets/good_ending_art.jpg" }, 
+            { speaker: "Солнечнопляска", text: "— Ноча! Ноча, привет!", changeBg: "assets/good_ending_art.jpg", clearSprites: true }, 
             { speaker: "", text: "Голос знакомой кошки вырывает Спасительницу из плена мыслей. Она оборачивается и видит Солнечнопляску. За ней спешит Падуб, с лучезарной улыбкой на морде." },
             { speaker: "Падуб", text: "— Не ожидали увидеть тебя тут! — говорит он. — Ноча? Ты что, плакала?" },
             { speaker: "", text: "Голос Падуба вмиг из весёлого становится обеспокоенным. Солнечнопляска в пару прыжков подбегает к подруге и трётся щекой о её щёку, стирая следы горьких слёз." },
@@ -399,7 +393,7 @@ const story = {
     },
 
     "bad_ending": {
-        bg: "",
+        bg: "", music: "horror",
         dialogue: [
             { speaker: "Спасительница", text: "<b>ПЛОХАЯ КОНЦОВКА</b><br><br><i>Не получилось. В последний момент фрагменты воспоминаний выскальзывают из лап. Будет ли третий шанс? Четвёртый? Пятый? Кажется, нет. Тени начинают сгущаться, принимать гротескные чудовищные формы и тянуть свои «конечности» прямо к Ноче. А в центре этих теней три силуэта. До боли знакомые и чужие одновременно.</i>", action: "hide_wisp", clearSprites: true, show: [{name: "Ноча", img: "assets/nocha_scared.png", pos: "left"}] },
             { speaker: "Солнечнопляска", text: "— Что, облажалась? — злорадствует Солнечнопляска. — Бесполезная.", isHorror: true, show: [{name: "Солнечнопляска", img: "assets/sun_horror.png", pos: "right"}] },

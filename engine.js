@@ -5,6 +5,34 @@ let currentGameConfig = null;
 let currentActiveSprites = {}; 
 let unplayedFragments = []; 
 
+// === АУДИО МЕНЕДЖЕР ===
+let currentMusicType = null;
+const audioTracks = {
+    "hub": new Audio("assets/bgm_hub.mp3"),
+    "memory": new Audio("assets/bgm_memory.mp3"),
+    "horror": new Audio("assets/bgm_horror.mp3"),
+    "good_end": new Audio("assets/bgm_good_end.mp3")
+};
+// Зацикливаем музыку
+for (let key in audioTracks) { audioTracks[key].loop = true; }
+
+function playMusic(trackType) {
+    if (currentMusicType === trackType) return; 
+    
+    if (currentMusicType && audioTracks[currentMusicType]) {
+        audioTracks[currentMusicType].pause();
+        audioTracks[currentMusicType].currentTime = 0;
+    }
+    
+    if (trackType && audioTracks[trackType]) {
+        audioTracks[trackType].play().catch(e => console.log("Аудио заблокировано браузером (нужен клик):", e));
+        currentMusicType = trackType;
+    } else {
+        currentMusicType = null;
+    }
+}
+// =========================
+
 function showScreen(screenId) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     let targetScreen = document.getElementById(screenId);
@@ -35,6 +63,7 @@ function startGame() {
 }
 
 function returnToMenu() {
+    playMusic(null); 
     let inv = document.getElementById('inventory');
     if (inv) inv.classList.add('hidden');
     showScreen('main-menu');
@@ -49,6 +78,8 @@ function loadScene(sceneId) {
         console.error("ОШИБКА: Сцена " + sceneId + " не найдена!");
         return;
     }
+
+    if (scene.music) playMusic(scene.music);
 
     let bg = document.getElementById('background');
     if (bg) {
@@ -129,7 +160,10 @@ function renderLine() {
             currentActiveSprites = {};
         }
 
+        // ОБНОВЛЕНИЕ СПРАЙТОВ
         if (line.show) updateSprites(line.show);
+        
+        // ВАЖНО: ИСПРАВЛЕНА ОШИБКА ЗДЕСЬ. ВЫЗЫВАЕМ ФУНКЦИЮ СКРЫТИЯ!
         if (line.hide) hideSprites(line.hide);
 
         highlightSpeaker(line.speaker);
@@ -172,39 +206,55 @@ function updateSprites(spritesData) {
     let container = document.getElementById('sprites-container');
     if (!container) return;
 
-    // ИСПРАВЛЕНИЕ: Больше не удаляем спрайты! Только обновляем или добавляем.
+    // Мы БОЛЬШЕ НЕ удаляем персонажей, которых нет в текущем списке show!
+    // Мы только добавляем новых или обновляем картинки/позиции у тех, кого передали.
+
     spritesData.forEach(spriteInfo => {
         let existing = container.querySelector(`img[data-name="${spriteInfo.name}"]`);
+        
         if (existing) {
-            existing.className = `sprite pos-${spriteInfo.pos} ${spriteInfo.anim || ''}`;
+            // Персонаж уже есть на экране. Обновляем его класс (позицию/анимацию)
+            existing.className = `sprite pos-${spriteInfo.pos || 'center'} ${spriteInfo.anim || ''}`;
+            
+            // Если картинка (эмоция) изменилась, плавно меняем её
             if (existing.src !== spriteInfo.img && !existing.src.includes(spriteInfo.img)) {
                 existing.src = spriteInfo.img; 
             }
         } else {
+            // Персонажа нет на экране. Создаем его!
             let img = document.createElement('img');
             img.src = spriteInfo.img; 
-            img.className = `sprite pos-${spriteInfo.pos} ${spriteInfo.anim || ''}`;
+            img.className = `sprite pos-${spriteInfo.pos || 'center'} ${spriteInfo.anim || ''}`;
             img.dataset.name = spriteInfo.name;
+            
+            // Защита: если картинки нет в папке, просто прячем рамку с ошибкой
             img.onerror = function() { this.style.display = 'none'; };
+            
             container.appendChild(img);
             currentActiveSprites[spriteInfo.name] = true;
         }
     });
 }
 
+// ВАЖНО: ВОТ ЭТА ФУНКЦИЯ ПРОПАЛА В ПРОШЛЫЙ РАЗ! Я ЕЕ ВЕРНУЛ.
 function hideSprites(namesArray) {
     let container = document.getElementById('sprites-container');
     if (!container) return;
     namesArray.forEach(name => {
         let s = container.querySelector(`img[data-name="${name}"]`);
-        if (s) { s.remove(); delete currentActiveSprites[name]; }
+        if (s) { 
+            s.remove(); 
+            delete currentActiveSprites[name]; 
+        }
     });
 }
 
 function highlightSpeaker(speakerName) {
     let sprites = document.querySelectorAll('.sprite');
+    let targetName = (speakerName === "Спасительница") ? "Ноча" : speakerName;
+
     sprites.forEach(sprite => {
-        if (sprite.dataset.name === speakerName) sprite.classList.add('active');
+        if (sprite.dataset.name === targetName) sprite.classList.add('active');
         else sprite.classList.remove('active');
     });
 }
@@ -290,6 +340,10 @@ function collectFragment(nextSceneId) {
 }
 
 function playFullPuzzleAnimation(callback) {
+    playMusic(null); 
+    let sfx = new Audio("assets/sfx_spiral.mp3");
+    sfx.play().catch(e=>{});
+
     let overlay = document.getElementById('full-puzzle-overlay');
     let swirlContainer = document.getElementById('swirl-container');
     let flash = document.getElementById('flash-screen');
@@ -336,21 +390,28 @@ function playFullPuzzleAnimation(callback) {
             overlay.classList.add('hidden');
             
             if (uiLayer) uiLayer.classList.remove('hidden');
+            
+            playMusic("good_end"); 
             if (callback) callback(); 
         }, 1000); 
     }, 2800); 
 }
 
 function triggerJumpscareAndBadEnd() {
+    playMusic(null); 
+    let sfx = new Audio("assets/sfx_jumpscare.mp3");
+    sfx.play().catch(e=>{});
+
     let inv = document.getElementById('inventory');
     if (inv) inv.classList.add('hidden');
     let ui = document.getElementById('ui-layer');
     if (ui) ui.classList.add('hidden');
     
+    document.getElementById('vn-screen').classList.add('fade-out'); 
     showScreen('jumpscare-screen');
     
     setTimeout(() => { 
-        showScreen('vn-screen');
+        document.getElementById('vn-screen').classList.remove('fade-out');
         if(ui) ui.classList.remove('hidden');
         showEndingCard("bad");
     }, 3000); 
