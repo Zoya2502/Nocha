@@ -8,10 +8,10 @@ let unplayedFragments = [];
 // === АУДИО МЕНЕДЖЕР ===
 let currentMusicType = null;
 const audioTracks = {
-    "hub": new Audio("assets/bgm_hub.mp3"),
-    "memory": new Audio("assets/bgm_memory.mp3"),
-    "horror": new Audio("assets/bgm_horror.mp3"),
-    "good_end": new Audio("assets/bgm_good_end.mp3")
+    "hub": new Audio("assets/bgm_hub.ogg"),
+    "memory": new Audio("assets/bgm_memory.ogg"),
+    "horror": new Audio("assets/bgm_horror.ogg"),
+    "good_end": new Audio("assets/bgm_good_end.ogg")
 };
 // Зацикливаем музыку
 for (let key in audioTracks) { audioTracks[key].loop = true; }
