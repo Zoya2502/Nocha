@@ -29,6 +29,10 @@
             <div id="background"></div>
             <div id="paw-prints"></div> 
             <div id="sprites-container"></div>
+            
+            <!-- ИСПРАВЛЕНИЕ: СОБРАННЫЙ ПАЗЛ ТЕПЕРЬ НАХОДИТСЯ ЗДЕСЬ! -->
+            <div id="completed-puzzle" class="hidden"></div>
+            
             <img id="wisp" src="assets/wisp.png" class="hidden" alt="Огонек"> 
         </div>
         
@@ -46,21 +50,16 @@
     <!-- ПОЛНОЦЕННАЯ МИНИ-ИГРА -->
     <div id="minigame-screen" class="screen">
         <div id="minigame-bg" onclick="handleMissClick(event)">
-            <!-- Сюда будут спавниться предметы -->
             <div id="minigame-items-container"></div>
         </div>
-        
-        <!-- Нижняя панель с Экранчиком и заданиями -->
         <div id="minigame-ui">
-            <div id="minigame-screen-character"></div> <!-- Экранчик-наблюдатель -->
+            <div id="minigame-screen-character"></div> 
             <div id="minigame-task-box">
                 <div class="task-header">
                     <span>Найди эти фрагменты памяти:</span>
                     <span id="mistakes-counter" class="mistakes">Ошибок: 0 / 3</span>
                 </div>
-                <div id="target-items-container">
-                    <!-- Сюда скрипт вставит 5 силуэтов -->
-                </div>
+                <div id="target-items-container"></div>
             </div>
         </div>
     </div>
@@ -74,7 +73,6 @@
     <div id="full-puzzle-overlay" class="screen hidden">
         <div id="swirl-container"></div>
         <div id="flash-screen"></div>
-        <div id="completed-puzzle" class="hidden"></div>
     </div>
 
     <!-- Скример -->

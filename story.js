@@ -380,11 +380,11 @@ const story = {
     "good_ending": {
         bg: "",
         dialogue: [
-            { speaker: "", text: "Ноча ощущает то тепло, за которым гналась, когда ей показался этот огонёк. Сразу в мыслях всплывают образы дорогих сердцу друзей, самых близких и хороших.", clearSprites: true, show: [{name: "Ноча", img: "assets/nocha_norm.png", pos: "left"}] },
+            { speaker: "", text: "Ноча ощущает то тепло, за которым гналась, когда ей показался этот огонёк. Сразу в мыслях всплывают образы дорогих сердцу друзей, самых близких и хороших.", action: "hide_wisp", clearSprites: true, show: [{name: "Ноча", img: "assets/nocha_norm.png", pos: "left"}] },
             { speaker: "", text: "Так хочется увидеть их прямо сейчас. Конечно, вряд ли это возможно, но помечтать же никто не мешает?" },
             
             // ВАЖНО: Добавлен action: "hide_completed_puzzle", чтобы убрать пазл
-            { speaker: "Солнечнопляска", text: "— Ноча! Ноча, привет!", changeBg: "assets/good_ending_art.jpg", action: "hide_completed_puzzle", clearSprites: true }, 
+            { speaker: "Солнечнопляска", text: "— Ноча! Ноча, привет!", changeBg: "assets/good_ending_art.jpg",  action: "hide_completed_puzzle", clearSprites: true }, 
             
             { speaker: "", text: "Голос знакомой кошки вырывает Спасительницу из плена мыслей. Она оборачивается и видит Солнечнопляску. За ней спешит Падуб, с лучезарной улыбкой на морде." },
             { speaker: "Падуб", text: "— Не ожидали увидеть тебя тут! — говорит он. — Ноча? Ты что, плакала?" },
