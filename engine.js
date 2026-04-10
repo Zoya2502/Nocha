@@ -5,7 +5,7 @@ let currentGameConfig = null;
 let currentActiveSprites = {}; 
 let unplayedFragments = []; 
 
-// === АУДИО МЕНЕДЖЕР ===
+// === АУДИО МЕНЕДЖЕР (OGG) ===
 let currentMusicType = null;
 let currentSfx = null; 
 let fireSfx = new Audio("assets/sfx_fire.ogg");
@@ -22,12 +22,14 @@ for (let key in audioTracks) { audioTracks[key].loop = true; }
 
 function playMusic(trackType) {
     if (currentMusicType === trackType) return; 
+    
     if (currentMusicType && audioTracks[currentMusicType]) {
         audioTracks[currentMusicType].pause();
         audioTracks[currentMusicType].currentTime = 0;
     }
+    
     if (trackType && audioTracks[trackType]) {
-        audioTracks[trackType].play().catch(e => {});
+        audioTracks[trackType].play().catch(e => console.log("Аудио заблокировано браузером (нужен клик):", e));
         currentMusicType = trackType;
     } else {
         currentMusicType = null;
@@ -61,6 +63,12 @@ function startGame() {
     let inv = document.getElementById('inventory');
     if (inv) inv.classList.remove('hidden', 'fade-out');
     
+    let completedPuzzle = document.getElementById('completed-puzzle');
+    if(completedPuzzle) {
+        completedPuzzle.classList.remove('active');
+        completedPuzzle.classList.add('hidden');
+    }
+
     gameState.fragments = 0; 
     unplayedFragments = ["shadow_1", "shadow_2", "sun_1", "sun_2", "holly_1", "holly_2"];
     
@@ -76,25 +84,31 @@ function returnToMenu() {
     playMusic(null); 
     stopSfx();
     fireSfx.pause();
-    if (document.getElementById('inventory')) document.getElementById('inventory').classList.add('hidden');
+    let inv = document.getElementById('inventory');
+    if (inv) inv.classList.add('hidden');
     showScreen('main-menu');
 }
 
 function loadScene(sceneId) {
     currentSceneId = sceneId;
     currentLineIndex = 0;
+    
     let scene = story[sceneId];
-    if (!scene) { console.error("Сцена не найдена:", sceneId); return; }
+    if (!scene) {
+        console.error("ОШИБКА: Сцена " + sceneId + " не найдена!");
+        return;
+    }
 
     if (scene.music) playMusic(scene.music);
 
     let bg = document.getElementById('background');
     if (bg) {
-        // ИСКЛЮЧЕНИЕ ДЛЯ ХОРОШЕЙ КОНЦОВКИ: Оставляем пазл на фоне!
+        // Сброс фона, если это не финал
         if (sceneId !== "good_ending") {
             bg.style.backgroundSize = ""; 
             bg.style.backgroundRepeat = "";
             bg.style.filter = "";
+
             if (scene.bg && scene.bg !== "") bg.style.backgroundImage = `url('${scene.bg}')`; 
             else { bg.style.backgroundImage = "none"; bg.style.backgroundColor = "#000000"; }
             
@@ -108,6 +122,16 @@ function loadScene(sceneId) {
         }
     }
 
+    let wisp = document.getElementById('wisp');
+    if (wisp) {
+        wisp.classList.add('hidden');
+        wisp.classList.remove('fly-away');
+    }
+    
+    let spritesCont = document.getElementById('sprites-container');
+    if (spritesCont) spritesCont.innerHTML = ""; 
+    currentActiveSprites = {};
+
     renderLine();
 }
 
@@ -118,26 +142,34 @@ function renderLine() {
     if (currentLineIndex < scene.dialogue.length) {
         let line = scene.dialogue[currentLineIndex];
         
-        // Смена фона
         if (line.changeBg !== undefined) {
             let bg = document.getElementById('background');
             if (bg) {
-                // Если меняем фон (например, на арт), ЖЕСТКО сбрасываем настройки пазла
                 bg.style.backgroundSize = ""; 
-                bg.style.backgroundRepeat = ""; 
+                bg.style.backgroundRepeat = "";
                 bg.style.filter = "";
-                if (line.changeBg !== "") bg.style.backgroundImage = `url('${line.changeBg}')`;
-                else { bg.style.backgroundImage = "none"; bg.style.backgroundColor = "#000000"; }
+
+                if (line.changeBg !== "") {
+                    bg.style.backgroundImage = `url('${line.changeBg}')`;
+                    if (line.changeBg.includes('good_ending_art')) {
+                        let completedPuzzle = document.getElementById('completed-puzzle');
+                        if(completedPuzzle) {
+                            completedPuzzle.classList.remove('active');
+                            setTimeout(() => completedPuzzle.classList.add('hidden'), 500); 
+                        }
+                    }
+                } else { 
+                    bg.style.backgroundImage = "none"; bg.style.backgroundColor = "#000000"; 
+                }
             }
         }
         
         if (line.removeEffect === "burning") {
             let bg = document.getElementById('background');
             if (bg) bg.classList.remove('burning');
-            fireSfx.pause(); 
+            fireSfx.pause();
         }
 
-        // Текст
         let speakerDiv = document.getElementById('speaker-name');
         if (speakerDiv) speakerDiv.innerText = line.speaker || "";
 
@@ -151,17 +183,17 @@ function renderLine() {
             textDiv.classList.add('fade-in-text');
         }
 
-        // Спрайты
         if (line.clearSprites) {
-            let sc = document.getElementById('sprites-container');
-            if (sc) sc.innerHTML = ""; 
+            let spritesCont = document.getElementById('sprites-container');
+            if (spritesCont) spritesCont.innerHTML = ""; 
             currentActiveSprites = {};
         }
+
         if (line.show) updateSprites(line.show);
         if (line.hide) hideSprites(line.hide);
+
         highlightSpeaker(line.speaker);
 
-        // Огонек
         let wisp = document.getElementById('wisp');
         if (wisp) {
             if (line.action === "show_wisp") wisp.classList.remove('hidden', 'fly-away');
@@ -173,20 +205,20 @@ function renderLine() {
             }
         }
 
-        // Инвентарь
         let inv = document.getElementById('inventory');
         if (inv) {
             if (line.isHorror || currentSceneId === "bad_ending") inv.classList.add('fade-out');
             else inv.classList.remove('fade-out');
         }
 
-        // Анимация пазла (Спираль)
         if (line.action === "play_puzzle_animation") {
-            playFullPuzzleAnimation(() => { currentLineIndex++; renderLine(); });
-            return; // Ждем окончания анимации
+            playFullPuzzleAnimation(() => {
+                currentLineIndex++;
+                renderLine();
+            });
+            return; 
         }
         
-        // Кнопки выбора (если есть)
         let nextBtn = document.getElementById('next-btn');
         let choicesBox = document.getElementById('choices-container');
         if (line.choices) {
@@ -210,14 +242,12 @@ function renderLine() {
             currentLineIndex++;
         }
     } else {
-        // КОГДА РЕПЛИКИ КОНЧИЛИСЬ И КНОПОК НЕТ - АВТОМАТИЧЕСКИ ПЕРЕХОДИМ ДАЛЬШЕ
         handleNextAction(scene.nextAction, scene.gameConfig, scene.nextScene);
     }
 }
 
 function advanceStory() { 
     let scene = story[currentSceneId];
-    // Блокируем клик, если на экране активны кнопки выбора
     if(scene && scene.dialogue && scene.dialogue[currentLineIndex-1] && scene.dialogue[currentLineIndex-1].choices) {
         return; 
     }
@@ -227,11 +257,14 @@ function advanceStory() {
 function updateSprites(spritesData) {
     let container = document.getElementById('sprites-container');
     if (!container) return;
+
     spritesData.forEach(spriteInfo => {
         let existing = container.querySelector(`img[data-name="${spriteInfo.name}"]`);
         if (existing) {
             existing.className = `sprite pos-${spriteInfo.pos} ${spriteInfo.anim || ''}`;
-            if (!existing.src.includes(spriteInfo.img)) existing.src = spriteInfo.img; 
+            if (existing.src !== spriteInfo.img && !existing.src.includes(spriteInfo.img)) {
+                existing.src = spriteInfo.img; 
+            }
         } else {
             let img = document.createElement('img');
             img.src = spriteInfo.img; 
@@ -249,14 +282,14 @@ function hideSprites(namesArray) {
     if (!container) return;
     namesArray.forEach(name => {
         let s = container.querySelector(`img[data-name="${name}"]`);
-        if (s) s.remove();
-        delete currentActiveSprites[name];
+        if (s) { s.remove(); delete currentActiveSprites[name]; }
     });
 }
 
 function highlightSpeaker(speakerName) {
     let sprites = document.querySelectorAll('.sprite');
     let targetName = (speakerName === "Спасительница") ? "Ноча" : speakerName;
+
     sprites.forEach(sprite => {
         if (sprite.dataset.name === targetName) sprite.classList.add('active');
         else sprite.classList.remove('active');
@@ -265,8 +298,9 @@ function highlightSpeaker(speakerName) {
 
 function handleNextAction(action, config, nextSceneId) {
     if (action === "random_next") {
-        if (unplayedFragments.length === 0) { loadScene('good_ending_intro'); } 
-        else {
+        if (unplayedFragments.length === 0) {
+            loadScene('good_ending_intro'); 
+        } else {
             let randomIndex = Math.floor(Math.random() * unplayedFragments.length);
             let nextFragId = unplayedFragments.splice(randomIndex, 1)[0];
             loadScene(nextFragId); 
@@ -281,139 +315,31 @@ function handleNextAction(action, config, nextSceneId) {
     else if (action) loadScene(action); 
 }
 
-function startMinigame(config) { 
-    currentGameConfig = config; 
-    if (document.getElementById('inventory')) document.getElementById('inventory').classList.add('fade-out'); 
-    showScreen('minigame-screen'); 
-    spawnItems(); 
-}
-
-function winMinigame() { 
-    if (document.getElementById('inventory')) document.getElementById('inventory').classList.remove('fade-out'); 
-    showScreen('vn-screen'); 
-    if (currentGameConfig.winScene === "random_next") handleNextAction("random_next");
-    else loadScene(currentGameConfig.winScene); 
-}
-
-function loseMinigame() { showScreen('vn-screen'); loadScene(currentGameConfig.loseScene); }
-
-function collectFragment(nextSceneId) {
-    gameState.fragments++;
-    let overlay = document.getElementById('puzzle-overlay');
-    let piece = document.getElementById('puzzle-piece-large');
-    if (piece) {
-        piece.classList.remove('anim-fly-to-inventory');
-        piece.style.backgroundImage = `url('assets/frag_${gameState.fragments}.png')`;
-    }
-    if (overlay) { overlay.classList.remove('hidden'); overlay.classList.add('active'); }
-    setTimeout(() => {
-        if (piece) piece.classList.add('anim-fly-to-inventory');
-        setTimeout(() => {
-            if (overlay) { overlay.classList.remove('active'); overlay.classList.add('hidden'); }
-            let slot = document.getElementById(`inv-slot-${gameState.fragments}`);
-            if (slot) { slot.style.backgroundImage = `url('assets/frag_${gameState.fragments}.png')`; slot.classList.add('filled'); }
-            if (gameState.fragments >= 6) loadScene('good_ending_intro');
-            else if (nextSceneId) loadScene(nextSceneId); 
-            else handleNextAction("random_next"); 
-        }, 1500); 
-    }, 1500); 
-}
-
-function playFullPuzzleAnimation(callback) {
-    playMusic(null); 
-    playSfx("assets/sfx_spiral.ogg"); 
-    let overlay = document.getElementById('full-puzzle-overlay');
-    let swirlContainer = document.getElementById('swirl-container');
-    let flash = document.getElementById('flash-screen');
-    let uiLayer = document.getElementById('ui-layer');
-    
-    if (uiLayer) uiLayer.classList.add('hidden'); 
-    if (!overlay || !swirlContainer || !flash) return;
-    
-    swirlContainer.innerHTML = '';
-    flash.classList.remove('flash-anim');
-    overlay.classList.remove('hidden');
-    overlay.classList.add('active');
-    
-    for(let i = 1; i <= 6; i++) {
-        let p = document.createElement('div');
-        p.className = 'swirl-piece';
-        p.style.backgroundImage = `url('assets/frag_${i}.png')`;
-        p.style.setProperty('--start-rot', `${i * 60}deg`); 
-        swirlContainer.appendChild(p);
-    }
-    
-    setTimeout(() => {
-        flash.classList.add('flash-anim');
-        setTimeout(() => {
-            // ИДЕАЛЬНАЯ ЛОГИКА ФОНА ДЛЯ ПАЗЛА
-            let bg = document.getElementById('background');
-            if(bg) {
-                bg.style.backgroundImage = "url('assets/full_puzzle.png')";
-                bg.style.backgroundSize = "contain"; 
-                bg.style.backgroundRepeat = "no-repeat";
-                bg.style.filter = "drop-shadow(0 0 40px #00ffff)";
-            }
-            
-            let sc = document.getElementById('sprites-container');
-            if(sc) sc.innerHTML = "";
-            currentActiveSprites = {};
-            
-            overlay.classList.remove('active'); 
-            overlay.classList.add('hidden');
-            if (uiLayer) uiLayer.classList.remove('hidden');
-            
-            playMusic("good_end"); 
-            if (callback) callback(); 
-        }, 1000); 
-    }, 2800); 
-}
-
-function triggerJumpscareAndBadEnd() {
-    playMusic(null); 
-    playSfx("assets/sfx_jumpscare.ogg"); 
-    if (document.getElementById('inventory')) document.getElementById('inventory').classList.add('hidden');
-    if (document.getElementById('ui-layer')) document.getElementById('ui-layer').classList.add('hidden');
-    
-    document.getElementById('vn-screen').classList.add('fade-out'); 
-    showScreen('jumpscare-screen');
-    
-    setTimeout(() => { 
-        document.getElementById('vn-screen').classList.remove('fade-out');
-        if (document.getElementById('ui-layer')) document.getElementById('ui-layer').classList.remove('hidden');
-        stopSfx(); 
-        playMusic("horror"); 
-        showEndingCard("bad");
-    }, 3000); 
-}
-
-function showEndingCard(type) {
-    if (document.getElementById('inventory')) document.getElementById('inventory').classList.add('hidden');
-    let cardScreen = document.getElementById('ending-card-screen');
-    let title = document.getElementById('ending-title');
-    let cardImg = document.getElementById('ending-card-img');
-    let bg = document.getElementById('ending-card-bg');
-    if (!cardScreen || !title || !cardImg) return;
-    
-    if(type === "good") {
-        title.innerText = "ХОРОШАЯ КОНЦОВКА";
-        title.style.color = "#00ffff";
-        cardImg.style.backgroundImage = "url('assets/good_ending_art.jpg')"; 
-        bg.style.backgroundImage = "url('assets/good_ending_art.jpg')"; 
-    } else {
-        title.innerText = "Мне не удалось вспомнить..";
-        title.style.color = "#ff0000";
-        cardImg.style.backgroundImage = "url('assets/bad_ending_art.jpg')"; 
-        bg.style.backgroundImage = "url('assets/bad_ending_art.jpg')"; 
-    }
-    showScreen('ending-card-screen');
-}
-
-// === МИНИ-ИГРА (ПОИСК) ===
+// === УМНАЯ МИНИ-ИГРА (БЕЗ НАЛОЖЕНИЯ ПРЕДМЕТОВ) ===
 let minigameMistakes = 0;
 let itemsToFind = 5;
 let itemsFound = 0;
 let targetItemsList = [];
+
+function checkOverlap(newX, newY, positions) {
+    for (let pos of positions) {
+        let dx = newX - pos.x;
+        let dy = newY - pos.y;
+        let distance = Math.sqrt(dx * dx + dy * dy);
+        if (distance < 12) { 
+            return true; 
+        }
+    }
+    return false; 
+}
+
+function startMinigame(config) { 
+    currentGameConfig = config; 
+    let inv = document.getElementById('inventory');
+    if (inv) inv.classList.add('fade-out'); 
+    showScreen('minigame-screen'); 
+    spawnItems();
+}
 
 function spawnItems() {
     let container = document.getElementById('minigame-items-container');
@@ -428,7 +354,7 @@ function spawnItems() {
 
     let bg = document.getElementById('minigame-bg');
     let randBg = Math.floor(Math.random() * 3) + 1;
-    bg.style.backgroundImage = `url('assets/minigame_bg_${randBg}.jpg')`;
+    if (bg) bg.style.backgroundImage = `url('assets/minigame_bg_${randBg}.jpg')`;
 
     let allItems = [];
     while(allItems.length < 10){
@@ -445,13 +371,32 @@ function spawnItems() {
         taskBox.appendChild(silhouette);
     });
 
+    let spawnedPositions = [];
+
     allItems.forEach(id => {
         let isTarget = targetItemsList.includes(id);
         let item = document.createElement('div');
         item.className = 'mg-item';
         item.style.backgroundImage = `url('assets/item_${id}.png')`;
-        item.style.top = (Math.random() * 80 + 10) + '%';
-        item.style.left = (Math.random() * 80 + 10) + '%';
+        
+        let validPosition = false;
+        let randomX, randomY;
+        let attempts = 0;
+
+        while (!validPosition && attempts < 50) {
+            randomX = Math.random() * 80 + 10;
+            randomY = Math.random() * 80 + 10;
+            
+            if (!checkOverlap(randomX, randomY, spawnedPositions)) {
+                validPosition = true;
+            }
+            attempts++;
+        }
+
+        spawnedPositions.push({x: randomX, y: randomY});
+
+        item.style.left = randomX + '%';
+        item.style.top = randomY + '%';
         item.style.transform = `rotate(${Math.random() * 360}deg) scale(${Math.random() * 0.5 + 0.8})`;
 
         item.onclick = (e) => {
@@ -482,4 +427,155 @@ function handleMissClick(e) {
         bg.classList.add('error-flash');
     }
     if (minigameMistakes >= 3) loseMinigame();
+}
+
+function winMinigame() { 
+    let inv = document.getElementById('inventory');
+    if (inv) inv.classList.remove('fade-out'); 
+    showScreen('vn-screen'); 
+    if (currentGameConfig && currentGameConfig.winScene === "random_next") {
+        handleNextAction("random_next");
+    } else if (currentGameConfig) {
+        loadScene(currentGameConfig.winScene); 
+    }
+}
+
+function loseMinigame() { 
+    showScreen('vn-screen'); 
+    if (currentGameConfig) loadScene(currentGameConfig.loseScene); 
+}
+
+function collectFragment(nextSceneId) {
+    gameState.fragments++;
+    let overlay = document.getElementById('puzzle-overlay');
+    let piece = document.getElementById('puzzle-piece-large');
+    
+    if (piece) {
+        piece.classList.remove('anim-fly-to-inventory');
+        piece.style.backgroundImage = `url('assets/frag_${gameState.fragments}.png')`;
+    }
+    if (overlay) {
+        overlay.classList.remove('hidden');
+        overlay.classList.add('active');
+    }
+
+    setTimeout(() => {
+        if (piece) piece.classList.add('anim-fly-to-inventory');
+        setTimeout(() => {
+            if (overlay) {
+                overlay.classList.remove('active');
+                overlay.classList.add('hidden');
+            }
+            let slot = document.getElementById(`inv-slot-${gameState.fragments}`);
+            if (slot) {
+                slot.style.backgroundImage = `url('assets/frag_${gameState.fragments}.png')`;
+                slot.classList.add('filled');
+            }
+            
+            if (gameState.fragments >= 6) {
+                loadScene('good_ending_intro');
+            } else if (nextSceneId) {
+                loadScene(nextSceneId); 
+            } else {
+                handleNextAction("random_next"); 
+            }
+        }, 1500); 
+    }, 1500); 
+}
+
+function playFullPuzzleAnimation(callback) {
+    playMusic(null); 
+    playSfx("assets/sfx_spiral.ogg"); 
+    let overlay = document.getElementById('full-puzzle-overlay');
+    let swirlContainer = document.getElementById('swirl-container');
+    let flash = document.getElementById('flash-screen');
+    let uiLayer = document.getElementById('ui-layer');
+
+    if (uiLayer) uiLayer.classList.add('hidden'); 
+    if (!overlay || !swirlContainer || !flash) return;
+
+    swirlContainer.innerHTML = '';
+    flash.classList.remove('flash-anim');
+
+    overlay.classList.remove('hidden');
+    overlay.classList.add('active');
+
+    for(let i = 1; i <= 6; i++) {
+        let p = document.createElement('div');
+        p.className = 'swirl-piece';
+        p.style.backgroundImage = `url('assets/frag_${i}.png')`;
+        p.style.setProperty('--start-rot', `${i * 60}deg`); 
+        swirlContainer.appendChild(p);
+    }
+
+    setTimeout(() => {
+        flash.classList.add('flash-anim');
+        setTimeout(() => {
+            let completedPuzzle = document.getElementById('completed-puzzle');
+            if (completedPuzzle) {
+                completedPuzzle.classList.remove('hidden');
+                setTimeout(() => completedPuzzle.classList.add('active'), 50);
+            }
+
+            let spritesCont = document.getElementById('sprites-container');
+            if(spritesCont) spritesCont.innerHTML = "";
+            currentActiveSprites = {};
+
+            overlay.classList.remove('active');
+            overlay.classList.add('hidden');
+            
+            if (uiLayer) uiLayer.classList.remove('hidden');
+            
+            playMusic("good_end"); 
+            if (callback) callback(); 
+        }, 1000); 
+    }, 2800); 
+}
+
+function triggerJumpscareAndBadEnd() {
+    playMusic(null); 
+    playSfx("assets/sfx_jumpscare.ogg"); 
+    let inv = document.getElementById('inventory');
+    if (inv) inv.classList.add('hidden');
+    let ui = document.getElementById('ui-layer');
+    if (ui) ui.classList.add('hidden');
+    
+    document.getElementById('vn-screen').classList.add('fade-out'); 
+    showScreen('jumpscare-screen');
+    
+    setTimeout(() => { 
+        document.getElementById('vn-screen').classList.remove('fade-out');
+        if (ui) ui.classList.remove('hidden');
+        stopSfx(); 
+        
+        playMusic("horror"); 
+        
+        showEndingCard("bad");
+    }, 3000); 
+}
+
+function showEndingCard(type) {
+    let inv = document.getElementById('inventory');
+    if (inv) inv.classList.add('hidden');
+    
+    let cardScreen = document.getElementById('ending-card-screen');
+    let title = document.getElementById('ending-title');
+    let cardImg = document.getElementById('ending-card-img');
+    let bg = document.getElementById('ending-card-bg');
+    
+    if (!cardScreen || !title || !cardImg) return;
+
+    if(type === "good") {
+        title.innerText = "ХОРОШАЯ КОНЦОВКА";
+        title.style.color = "#00ffff";
+        cardImg.style.backgroundImage = "url('assets/good_ending_art.jpg')"; 
+        bg.style.backgroundImage = "url('assets/good_ending_art.jpg')"; 
+    } else {
+        title.innerText = "Мне не удалось вспомнить..";
+        title.style.color = "#ff0000";
+        cardImg.style.backgroundImage = "url('assets/bad_ending_art.jpg')"; 
+        bg.style.backgroundImage = "url('assets/bad_ending_art.jpg')"; 
+    }
+    
+    showScreen('ending-card-screen');
 }
