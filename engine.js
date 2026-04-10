@@ -341,7 +341,7 @@ function collectFragment(nextSceneId) {
 
 function playFullPuzzleAnimation(callback) {
     playMusic(null); 
-    let sfx = new Audio("assets/sfx_spiral.mp3");
+    let sfx = new Audio("assets/sfx_spiral.ogg");
     sfx.play().catch(e=>{});
 
     let overlay = document.getElementById('full-puzzle-overlay');
@@ -399,7 +399,7 @@ function playFullPuzzleAnimation(callback) {
 
 function triggerJumpscareAndBadEnd() {
     playMusic(null); 
-    let sfx = new Audio("assets/sfx_jumpscare.mp3");
+    let sfx = new Audio("assets/sfx_jumpscare.ogg");
     sfx.play().catch(e=>{});
 
     let inv = document.getElementById('inventory');
